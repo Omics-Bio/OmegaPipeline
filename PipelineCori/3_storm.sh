@@ -41,7 +41,7 @@ if [ ${unmergedCode} == 0 ]; then
 	fi
 fi
 
-echo ${sub}
+#echo ${sub}
 
 namenew=`printf "%02d" ${SLURM_ARRAY_TASK_ID}`
 

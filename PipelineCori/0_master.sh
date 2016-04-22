@@ -92,10 +92,11 @@ if [ "${1}" == "OmegaDone" ]
 	rm -r -f ${WorkingDirectory}/Hero
 	rm -r -f ${WorkingDirectory}/Dedup
 	rm -r -f ${WorkingDirectory}/Align
-	echo Time is $(date) >> ${WorkingDirectory}/Omega.log
-	echo "Omega Completed." >> ${WorkingDirectory}/Omega.log
+	cp ${WorkingDirectory}/Omega/${TargetName}_contigs.fasta ${WorkingDirectory}/
+	echo "Omega Completed at $(date)." >> ${WorkingDirectory}/Omega.log
+	echo "The assembled contigs is in ${WorkingDirectory}." >> ${WorkingDirectory}/Omega.log
+	echo "The name is ${TargetName}_contigs.fasta" >> ${WorkingDirectory}/Omega.log
 fi
-
 
 ##################################################################
 ## This is the seventh step:
@@ -146,10 +147,9 @@ if [ "${1}" == "RenameDone" ]
 	# run overlap graph construction
 	NumOfSplits=`ls ${WorkingDirectory}/Rename/${Filename}*.fasta | wc -l`
 	NumOfSplits=`expr ${NumOfSplits} - 1`
-	echo Time is $(date) >> ${WorkingDirectory}/Omega.log
-	echo "Finish Storm-Renaming Jobs." >> ${WorkingDirectory}/Omega.log
+	echo "Finish Storm-Renaming Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
 	echo "" >> ${WorkingDirectory}/Omega.log
-	echo "Submit Storm-Aligning Jobs..." >> ${WorkingDirectory}/Omega.log
+	echo "Submit Storm-Aligning Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
 	if [ -d "${WorkingDirectory}/Align" ]; then
 		rm -r ${WorkingDirectory}/Align
 		mkdir ${WorkingDirectory}/Align
@@ -183,10 +183,9 @@ if [ "${1}" == "DedupDone" ]; then
 	returnvalue=$?
 	# rename all the reads
 	if [ "${returnvalue}" == 0 ]; then
-		echo Time is $(date) >> ${WorkingDirectory}/Omega.log
-		echo "Finish Storm-Dedup Jobs." >> ${WorkingDirectory}/Omega.log
+		echo "Finish Storm-Dedup Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
 		echo "" >> ${WorkingDirectory}/Omega.log
-		echo "Submit Storm-Renaming Jobs..." >> ${WorkingDirectory}/Omega.log
+		echo "Submit Storm-Renaming Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
 		if [ -d "${WorkingDirectory}/Rename" ]; then
 			rm -r ${WorkingDirectory}/Rename
 			mkdir ${WorkingDirectory}/Rename
@@ -214,9 +213,9 @@ fi
 ##################################################################
 if [ "${1}" == "HeroDone" ]; then
 	# run contained reads remover
-	echo Time is $(date) >> ${WorkingDirectory}/Omega.log
-	echo "Finish Hero/Merging/Moving Jobs." >> ${WorkingDirectory}/Omega.log
-	echo "Submit Storm-Dedup Jobs..." >> ${WorkingDirectory}/Omega.log
+	echo "Finish Hero/Merging/Moving Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
+	echo "" >> ${WorkingDirectory}/Omega.log
+	echo "Submit Storm-Dedup Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
 	if [ -d "${WorkingDirectory}/Dedup" ]; then
 		rm -r ${WorkingDirectory}/Dedup/
 		mkdir ${WorkingDirectory}/Dedup
@@ -254,8 +253,7 @@ if [ "${1}" == "MergeDone" ]; then
 	returnvalue=$?
 
 	if [ "${returnvalue}" == 0 ]; then
-		echo Time is $(date) >> ${WorkingDirectory}/Omega.log
-		echo "Finish Merging Jobs." >> ${WorkingDirectory}/Omega.log
+		echo "Finish Merging Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
 		echo "" >> ${WorkingDirectory}/Omega.log
 		for(( i=0; i<${numOfUnmergedSplits}; i++ )); do
 			newname=`printf "%02d" ${i}`
@@ -284,8 +282,7 @@ ${WorkingDirectory}/Merge/${Filename}_${newname}.fasta
 			ln -s ${WorkingDirectory}/Hero/merged/${Filename}_${newname}.fasta \
 ${WorkingDirectory}/Merge/${Filename}_${newId}.fasta
 		done
-		echo Time is $(date) >> ${WorkingDirectory}/Omega.log
-		echo "Finish Moving Jobs." >> ${WorkingDirectory}/Omega.log
+		echo "Finish Moving Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
 		${PathPipeline}/0_master.sh "HeroDone"
 		exit
 	fi
@@ -309,10 +306,9 @@ if [ "${1}" == "Merge" ]; then
 		exit
 	fi
 
-	echo Time is $(date) >> ${WorkingDirectory}/Omega.log
-	echo "Finish Hero Jobs." >> ${WorkingDirectory}/Omega.log
+	echo "Finish Hero Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
 	echo "" >> ${WorkingDirectory}/Omega.log
-	echo "Submit Storm-Merge Jobs." >> ${WorkingDirectory}/Omega.log
+	echo "Submit Storm-Merge Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
 	if [ -d "${WorkingDirectory}/Merge" ]; then
 		rm -r ${WorkingDirectory}/Merge
 		mkdir ${WorkingDirectory}/Merge
@@ -360,8 +356,7 @@ ${WorkingDirectory}/Merge/${Filename}_${newname}.fasta
 				ln -s ${WorkingDirectory}/Hero/merged/${Filename}_${newname}.fasta \
 ${WorkingDirectory}/Merge/${Filename}_${newId}.fasta
 			done
-			echo Time is $(date) >> ${WorkingDirectory}/Omega.log
-			echo "Finish Moving Jobs." >> ${WorkingDirectory}/Omega.log
+			echo "Finish Moving Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
 			${PathPipeline}/0_master.sh "HeroDone"
 		fi
 	elif (( ${countMerged}>0 )); then
@@ -371,8 +366,7 @@ ${WorkingDirectory}/Merge/${Filename}_${newId}.fasta
 			ln -s ${WorkingDirectory}/Hero/merged/${Filename}_${newname}.fasta \
 ${WorkingDirectory}/Merge/${Filename}_${newname}.fasta
 		done
-		echo Time is $(date) >> ${WorkingDirectory}/Omega.log
-		echo "Finish Moving Jobs." >> ${WorkingDirectory}/Omega.log
+		echo "Finish Moving Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
 		${PathPipeline}/0_master.sh "HeroDone"
 	elif (( ${countUnmerged}>0 )); then
 		numOfUnmergedSplits=`ls ${WorkingDirectory}/Split/unmerged | wc -l`
@@ -405,8 +399,7 @@ fi
 if [ "${1}" == "Hero" ]
 	then
 	# run Heterogeneity remover
-	echo Time is $(date) >> ${WorkingDirectory}/Omega.log
-	echo "Finish Triming, Filtering, Merging, and Spliting Jobs..." >> ${WorkingDirectory}/Omega.log
+	echo "Finish Triming, Filtering, Merging, and Spliting Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
 	echo "" >> ${WorkingDirectory}/Omega.log
 	echo "Submit Hero Jobs..." >> ${WorkingDirectory}/Omega.log
 	if [ -d "${WorkingDirectory}/Hero" ]; then
@@ -505,8 +498,7 @@ fi
 ##################################################################
 if [ "${1}" == "Start" ]
 	then
-	echo Time is $(date) > ${WorkingDirectory}/Omega.log
-	echo "Submit Triming, Filtering, Merging, and Spliting Jobs..." >> ${WorkingDirectory}/Omega.log
+	echo "Submit Triming, Filtering, Merging, and Spliting Jobs at $(date)" >> ${WorkingDirectory}/Omega.log
 	if [ -d "${WorkingDirectory}/Scripts" ]; then
 		rm -r ${WorkingDirectory}/Scripts
 		mkdir ${WorkingDirectory}/Scripts
