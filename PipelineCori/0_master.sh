@@ -342,7 +342,7 @@ PathPipeline=${PathPipeline},\
 WorkingDirectory=${WorkingDirectory}/Merge/,\
 PathStorm=${PathStorm},\
 NumThreads=${NumThreads} \
-${PathPipeline}/2_storm.sh \
+${PathPipeline}/3_storm.sh \
 >> ${WorkingDirectory}/Omega.log
 		else
 			#move to Merge and rename
@@ -390,7 +390,7 @@ PathPipeline=${PathPipeline},\
 WorkingDirectory=${WorkingDirectory}/Merge/,\
 PathStorm=${PathStorm},\
 NumThreads=${NumThreads} \
-${PathPipeline}/2_storm.sh \
+${PathPipeline}/3_storm.sh \
 >> ${WorkingDirectory}/Omega.log
 	fi
 	exit

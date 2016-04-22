@@ -12,7 +12,6 @@ else
 fi
 
 if [ ${InputFile2} != "EMPTY" ]; then
-	srun -n 1 -c ${NumThreads} \
 ${PathBbmap}/bbduk.sh \
 in=${InputFile} \
 in2=${InputFile2} \
@@ -23,7 +22,6 @@ threads=${NumThreads} \
 1>${WorkingDirectory}/trim.log \
 2>&1
 else
-	srun -n 1 -c ${NumThreads} \
 ${PathBbmap}/bbduk.sh \
 in=${InputFile} \
 out=${WorkingDirectory}/trim.fq \
