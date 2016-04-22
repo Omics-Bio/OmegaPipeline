@@ -26,7 +26,7 @@ NumThreads="32"
 TargetName="X41"
 Account="XXXXXXXXX"
 ##################################################################
-# Pathes to the necessary programs
+# Paths to the necessary programs
 ##################################################################
 PathHero="/xxxx/software/pipelineOmega/Slehea/Slehea"
 PathStorm="/xxxx/software/pipelineOmega/Storm/Storm"

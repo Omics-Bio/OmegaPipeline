@@ -26,7 +26,7 @@ NumThreads="32"
 TargetName="Test"
 
 ##################################################################
-# Pathes to the necessary programs
+# Paths to the necessary programs
 ##################################################################
 PathHero="/xxxxx/hero/slehea"
 PathStorm="/xxxxx/align_test/Release/align_test"
