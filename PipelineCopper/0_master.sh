@@ -1,52 +1,65 @@
 #!/bin/bash
 
-##--------------------------
+##################################################################
 # Parameters Needed to Be Speicified
-##--------------------------
-InputFile="/lustre/usr/local/usp/metaomics/00-DATA/X41-Biocathode-Metagenome-HiSEQ/Omega/X41_ATTCCT_L006_R1.fastq"
-# If it is interleave paried end reads, please set InputFile2="EMPTY", and comment the above line
-#InputFile2="EMPTY"
-InputFile2="/lustre/usr/local/usp/metaomics/00-DATA/X41-Biocathode-Metagenome-HiSEQ/Omega/X41_ATTCCT_L006_R2.fastq"
-WorkingDirectory="/lustre/usr/local/usp/metaomics/00-DATA/X41-Biocathode-Metagenome-HiSEQ/Omega/WD/"
-TargetName="X41"
+# InputFile/InputFile2:
+# # If it is interleaved format, only one input file is accepted, 
+# # and assign "EMPTY" to "InputFile2"
+# # If paired end reads in two separate files, provide pathes to 
+# # "InputFile" and "InputFile2"
+# WorkingDirectory:
+# # This is will be the directory to store all the intermediate 
+# # results by this pipeline. The final assembled contigs will be
+# # in "Omega" folder
+# SingleRead:
+# # Either "YES" or "NO"
+# NumThreads:
+# # The number of available threads on each nodes
+# TargetName:
+# # The prefix for the file that stores final assembled contigs
+##################################################################
+InputFile="xxx.fastq"
+InputFile2="EMPTY"
+WorkingDirectory="/xxx/xxx/WorkingDirectory"
 SingleRead="NO"
-Account="HPCMO38373A11"
-
-##--------------------------
-# Path to the necessary programs
-##--------------------------
-PathHero="/lustre/usr/local/usp/metaomics/software/pipelineOmega/Slehea/Slehea"
-PathStorm="/lustre/usr/local/usp/metaomics/software/pipelineOmega/Storm/Storm"
-PathOmega="/lustre/usr/local/usp/metaomics/software/pipelineOmega/Omega2/Omega2"
-PathBbmap="/lustre/usr/local/usp/metaomics/software/pipelineOmega/bbmap/"
-PathPython="python"
-PathSga=""
-
-##--------------------------
-# Parameters for Heterogeneity Remover
-##--------------------------
-Kmer="31"
-Mismatch="5"
 NumThreads="32"
-MinOverlapLength="31"
+TargetName="X41"
+Account="XXXXXXXXX"
+##################################################################
+# Pathes to the necessary programs
+##################################################################
+PathHero="/xxxx/software/pipelineOmega/Slehea/Slehea"
+PathStorm="/xxxx/software/pipelineOmega/Storm/Storm"
+PathOmega="/xxxx/software/pipelineOmega/Omega2/Omega2"
+PathBbmap="/xxxx/software/pipelineOmega/bbmap/"
+PathPython="python"
 
-##--------------------------
+##################################################################
+# Parameters for Heterogeneity Remover (Can leave them unchanged)
+##################################################################
+Kmer="31"
+Mismatch="2"
+MinOverlapLength="50"
+CoverageDepth="0"
+
+##################################################################
 # Parameters used inside (DO NOT CHANGE)
-##--------------------------
+##################################################################
 PathPipeline=${WorkingDirectory}/Scripts/
-innerNumMergedSplits=4
-innerNumUnmergedSplits=1
 SplitFolder=${WorkingDirectory}/Split
 Filename="Split"
 SizePerFile="2000" #size in Mb
 ErrorCorrection="NO"
 ApplyHero="YES"
 
-##--------------------------
+
+##################################################################
+## function to check if the submitted job fininshed or not
+## based on the "mark" file in the target folder
 # two parameters needed
 # $1 is the workingdirectory of hero
 # $2 is the number of splits
-##--------------------------
+##################################################################
 function checkResults(){
 	#TempNum=`ls ${1}/*mark | wc -l`
 	#if [ ${TempNum} != ${2} ]; then

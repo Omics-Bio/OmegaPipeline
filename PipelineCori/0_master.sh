@@ -18,9 +18,9 @@
 # TargetName:
 # # The prefix for the file that stores final assembled contigs
 ##################################################################
-InputFile="/global/projectb/scratch/pcl/MetaGenomicsAssembly/cami_bbqc/xuan/cori/test/test.fq"
+InputFile="/xuan/cori/test/test.fq"
 InputFile2="EMPTY"
-WorkingDirectory="/global/projectb/scratch/pcl/MetaGenomicsAssembly/cami_bbqc/xuan/cori/test"
+WorkingDirectory="/xuan/cori/test"
 SingleRead="NO"
 NumThreads="32"
 TargetName="Test"
@@ -28,10 +28,10 @@ TargetName="Test"
 ##################################################################
 # Pathes to the necessary programs
 ##################################################################
-PathHero="/global/u2/p/pcl/Software/hero/slehea"
-PathStorm="/global/u2/p/pcl/Software/align_test/Release/align_test"
-PathOmega="/global/u2/p/pcl/Software/omega2_v1.4/omega2"
-PathBbmap="/global/u2/p/pcl/Software/bbmap"
+PathHero="/xxxxx/hero/slehea"
+PathStorm="/xxxxx/align_test/Release/align_test"
+PathOmega="/xxxxx/Software/omega2_v1.4/omega2"
+PathBbmap="/xxxxx/bbmap"
 PathPython="python"
 
 ##################################################################
