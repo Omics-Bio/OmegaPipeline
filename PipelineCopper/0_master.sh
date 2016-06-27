@@ -28,9 +28,8 @@ Account="XXXXXXXXX"
 ##################################################################
 # Paths to the necessary programs
 ##################################################################
-PathHero="/xxxx/software/pipelineOmega/Slehea/Slehea"
-PathStorm="/xxxx/software/pipelineOmega/Storm/Storm"
-PathOmega="/xxxx/software/pipelineOmega/Omega2/Omega2"
+PathHero="/xxxx/software/pipelineOmega/Hero/Hero"
+PathOmega="/xxxx/software/pipelineOmega/Omega3/"
 PathBbmap="/xxxx/software/pipelineOmega/bbmap/"
 PathPython="python"
 
@@ -85,213 +84,17 @@ function checkResults(){
 
 if [ "${1}" == "OmegaDone" ]
 	then
-	rm -r -f ${WorkingDirectory}/Tfms
-	rm -r -f ${WorkingDirectory}/Split
-	rm -r -f ${WorkingDirectory}/Rename
-	rm -r -f ${WorkingDirectory}/Merge
-	rm -r -f ${WorkingDirectory}/Hero
-	rm -r -f ${WorkingDirectory}/Dedup
-	rm -r -f ${WorkingDirectory}/Align
-	cp ${WorkingDirectory}/Omega/${TargetName}_contigs.fasta ${WorkingDirectory}/
+	cp ${WorkingDirectory}/Omega/assembly/${TargetName}_contigsFinal.fasta ${WorkingDirectory}/
 	echo "Omega Completed at $(date)." >> ${WorkingDirectory}/Omega.log
 	echo "The assembled contigs is in ${WorkingDirectory}." >> ${WorkingDirectory}/Omega.log
 	echo "The name is ${TargetName}_contigs.fasta" >> ${WorkingDirectory}/Omega.log
 fi
 
-##################################################################
-## This is the seventh step:
-## Apply Omega to get the assembled contigs
-##################################################################
-if [ "${1}" == "AlignDone" ]
-	then
-	# check if all Align done or not
-	NumOfSplits=`ls ${WorkingDirectory}/Rename/${Filename}*.fasta | wc -l`
-	checkResults ${WorkingDirectory}/Align ${NumOfSplits}
-	returnvalue=$?
-	# run Omega
-	if [ "${returnvalue}" == 0 ]; then
-		echo Time is $(date) >> ${WorkingDirectory}/Omega.log
-		echo "Finish Storm-Aligning Jobs." >> ${WorkingDirectory}/Omega.log
-		echo "Submit Omega Jobs..." >> ${WorkingDirectory}/Omega.log
-		if [ -d "${WorkingDirectory}/Omega" ]; then
-			rm -r ${WorkingDirectory}/Omega
-			mkdir ${WorkingDirectory}/Omega
-		else
-			mkdir ${WorkingDirectory}/Omega
-		fi
-		qsub \
--A ${Account} \
--e "${WorkingDirectory}/Omega/ErrOmega.log" \
--o "${WorkingDirectory}/Omega/OutOmega.log" \
--v PathPipeline=${PathPipeline},\
-WorkingDirectory=${WorkingDirectory}/Omega,\
-InputReads=${WorkingDirectory}/Rename,\
-InputAlign=${WorkingDirectory}/Align,\
-PathOmega=${PathOmega},\
-NumThreads=${NumThreads},\
-TargetName=${TargetName},\
-Filename=${Filename} \
-${PathPipeline}/7_omega.sh \
->> ${WorkingDirectory}/Omega.log 
-	fi
-	exit
-fi
-
-
-##################################################################
-## This is the sixth step:
-## Construct the overlap graph
-##################################################################
-if [ "${1}" == "RenameDone" ]
-	then
-	# run overlap graph construction
-	NumOfSplits=`ls ${WorkingDirectory}/Rename/${Filename}*.fasta | wc -l`
-	NumOfSplits=`expr ${NumOfSplits} - 1`
-	echo "Finish Storm-Renaming Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
-	echo "" >> ${WorkingDirectory}/Omega.log
-	echo "Submit Storm-Aligning Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
-	if [ -d "${WorkingDirectory}/Align" ]; then
-		rm -r ${WorkingDirectory}/Align
-		mkdir ${WorkingDirectory}/Align
-	else
-		mkdir ${WorkingDirectory}/Align
-	fi
-	qsub \
--A ${Account} \
--e "${WorkingDirectory}/Align/ErrAlign.log" \
--o "${WorkingDirectory}/Align/OutAlign.log" \
-`if (( ${NumOfSplits} > 0 )); then echo "-J 0-${NumOfSplits}:1"; else echo "-v PBS_ARRAY_INDEX=0"; fi` \
--v PathPipeline=${PathPipeline},\
-WorkingDirectory=${WorkingDirectory}/Align,\
-InputPath=${WorkingDirectory}/Rename/,\
-PathStorm=${PathStorm},\
-NumThreads=${NumThreads},\
-Filename=${Filename} \
-${PathPipeline}/6_align.sh \
->> ${WorkingDirectory}/Omega.log 
-	exit
-fi
-
-##################################################################
-## This is the fifth step:
-## Rename all the reads
-##################################################################
-if [ "${1}" == "DedupDone" ]; then
-	# check if all Dedup done or not
-	NumOfSplits=`ls ${WorkingDirectory}/Merge/${Filename}*.fasta | wc -l`
-	checkResults ${WorkingDirectory}/Dedup ${NumOfSplits}
-	returnvalue=$?
-	# rename all the reads
-	if [ "${returnvalue}" == 0 ]; then
-		echo "Finish Storm-Dedup Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
-		echo "" >> ${WorkingDirectory}/Omega.log
-		echo "Submit Storm-Renaming Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
-		if [ -d "${WorkingDirectory}/Rename" ]; then
-			rm -r ${WorkingDirectory}/Rename
-			mkdir ${WorkingDirectory}/Rename
-		else
-			mkdir ${WorkingDirectory}/Rename
-		fi
-	qsub \
--A ${Account} \
--e "${WorkingDirectory}/Rename/ErrRename.log" \
--o "${WorkingDirectory}/Rename/OutRename.log" \
--v PathPipeline=${PathPipeline},\
-WorkingDirectory=${WorkingDirectory}/Rename,\
-InputPath=${WorkingDirectory}/Dedup/,\
-Filename=${Filename},\
-NumOfSplits=${NumOfSplits} \
-${PathPipeline}/5_rename.sh \
->> ${WorkingDirectory}/Omega.log 
-	fi
-	exit
-fi
-
-##################################################################
-## This is the fourth step:
-## Remove contained reads
-##################################################################
-if [ "${1}" == "HeroDone" ]; then
-	# run contained reads remover
-	echo "Finish Hero/Merging/Moving Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
-	echo "" >> ${WorkingDirectory}/Omega.log
-	echo "Submit Storm-Dedup Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
-	if [ -d "${WorkingDirectory}/Dedup" ]; then
-		rm -r ${WorkingDirectory}/Dedup/
-		mkdir ${WorkingDirectory}/Dedup
-	else
-		mkdir ${WorkingDirectory}/Dedup
-	fi
-	NumOfSplits=`ls ${WorkingDirectory}/Merge/${Filename}*.fasta | wc -l`
-	NumOfSplits=`expr ${NumOfSplits} - 1`
-	qsub \
--A ${Account} \
--e "${WorkingDirectory}/Dedup/ErrDedup.log" \
--o "${WorkingDirectory}/Dedup/OutDedup.log" \
-`if (( ${NumOfSplits} > 0 )); then echo "-J 0-${NumOfSplits}:1"; else echo "-v PBS_ARRAY_INDEX=0"; fi` \
--v PathPipeline=${PathPipeline},\
-WorkingDirectory=${WorkingDirectory}/Dedup,\
-InputPath=${WorkingDirectory}/Merge,\
-PathStorm=${PathStorm},\
-NumThreads=${NumThreads},\
-Filename=${Filename} \
-${PathPipeline}/4_dedup.sh \
->> ${WorkingDirectory}/Omega.log 
-	exit
-fi
-
-
-##################################################################
-## This is a post step for the third step:
-## merge the output from storm
-## create soft links to the merged corrected reads
-##################################################################
-if [ "${1}" == "MergeDone" ]; then
-	#rename the results from STORM_merge
-	numOfUnmergedSplits=`ls ${WorkingDirectory}/Split/unmerged | wc -l`
-	checkResults ${WorkingDirectory}/Merge/ ${numOfUnmergedSplits}
-	returnvalue=$?
-
-	if [ "${returnvalue}" == 0 ]; then
-		echo "Finish Merging Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
-		echo "" >> ${WorkingDirectory}/Omega.log
-		for(( i=0; i<${numOfUnmergedSplits}; i++ )); do
-			newname=`printf "%02d" ${i}`
-			if [ -f ${WorkingDirectory}/Merge/${Filename}_${newname}_merged.fasta -a \
--f ${WorkingDirectory}/Merge/${Filename}_${newname}_notmerged.fasta ]; then
-				cat ${WorkingDirectory}/Merge/${Filename}_${newname}_merged.fasta \
-${WorkingDirectory}/Merge/${Filename}_${newname}_notmerged.fasta \
-> ${WorkingDirectory}/Merge/${Filename}_${newname}.fasta
-				rm ${WorkingDirectory}/Merge/${Filename}_${newname}_merged.fasta
-				rm ${WorkingDirectory}/Merge/${Filename}_${newname}_notmerged.fasta
-			elif [ -f ${WorkingDirectory}/Merge/${Filename}_${newname}_merged.fasta ]; then
-				mv ${WorkingDirectory}/Merge/${Filename}_${newname}_merged.fasta \
-${WorkingDirectory}/Merge/${Filename}_${newname}.fasta
-			elif [ -f ${WorkingDirectory}/Merge/${Filename}_${newname}_notmerged.fasta ]; then
-				mv ${WorkingDirectory}/Merge/${Filename}_${newname}_notmerged.fasta \
-${WorkingDirectory}/Merge/${Filename}_${newname}.fasta
-			fi
-		done
-
-		#move the merged results from Hero to this folder, and rename them
-		numOfMergedSplits=`ls ${WorkingDirectory}/Split/merged | wc -l`
-		for(( i=0; i<${numOfMergedSplits}; i++ )); do
-			newname=`printf "%02d" ${i}`
-			newId=`expr ${numOfUnmergedSplits} + ${i}`
-			newId=`printf "%02d" ${newId}`
-			mv ${WorkingDirectory}/Hero/merged/${Filename}_${newname}.fasta \
-${WorkingDirectory}/Merge/${Filename}_${newId}.fasta
-		done
-		echo "Finish Moving Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
-		${PathPipeline}/0_master.sh "HeroDone"
-		exit
-	fi
-fi
-
 
 ##################################################################
 ## This is the third step:
-## Using Strom to merge untouchable paired end reads
+## Concatenate results from Hero
+## Call Omega 3
 ##################################################################
 if [ "${1}" == "Merge" ]; then
 	numOfMergedSplits=`ls ${WorkingDirectory}/Split/merged | wc -l`
@@ -308,7 +111,7 @@ if [ "${1}" == "Merge" ]; then
 
 	echo "Finish Hero Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
 	echo "" >> ${WorkingDirectory}/Omega.log
-	echo "Submit Storm-Merge Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
+	echo "Start Concatenating Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
 	if [ -d "${WorkingDirectory}/Merge" ]; then
 		rm -r ${WorkingDirectory}/Merge
 		mkdir ${WorkingDirectory}/Merge
@@ -317,76 +120,37 @@ if [ "${1}" == "Merge" ]; then
 	fi
 	countMerged=`ls -1 ${WorkingDirectory}/Hero/merged/*fasta 2>/dev/null | wc -l`
 	countUnmerged=`ls -1 ${WorkingDirectory}/Hero/unmerged/*fasta 2>/dev/null | wc -l`
-	if (( ${countMerged}>0 && ${countUnmerged}>0 )); then
-		SizeMergedFiles=`ls -l ${WorkingDirectory}/Hero/merged/*fasta | awk '{total += $5}END{print total}'`
-		SizeUnmergedFiles=`ls -l ${WorkingDirectory}/Hero/unmerged/*fasta | awk '{total += $5}END{print total}'`
-		if (( ${SizeUnmergedFiles}*9 > ${SizeMergedFiles} )); then
-			# start the merge
-			numOfUnmergedSplits=`ls ${WorkingDirectory}/Split/unmerged | wc -l`
-			numOfUnmergedSplits=`expr ${numOfUnmergedSplits} - 1`
-			echo ${numOfUnmergedSplits}
-			qsub \
--A ${Account} \
--e "${WorkingDirectory}/Merge/ErrMerge.log" \
--o "${WorkingDirectory}/Merge/OutMerge.log" \
-`if (( ${numOfUnmergedSplits} > 0 )); then echo "-J 0-${numOfUnmergedSplits}:1"; else echo "-v PBS_ARRAY_INDEX=0"; fi` \
--v SplitFolderMerged=${WorkingDirectory}/Hero/merged,\
-SplitFolderUnmerged=${WorkingDirectory}/Hero/unmerged,\
-Filename=${Filename},\
-Target=${WorkingDirectory}/Hero/unmerged,\
-PathPipeline=${PathPipeline},\
-WorkingDirectory=${WorkingDirectory}/Merge/,\
-PathStorm=${PathStorm},\
-NumThreads=${NumThreads} \
-${PathPipeline}/3_storm.sh \
->> ${WorkingDirectory}/Omega.log
-		else
-			#move to Merge and rename
-			numOfUnmergedSplits=`ls ${WorkingDirectory}/Split/unmerged | wc -l`
-			for(( i=0; i<${numOfUnmergedSplits}; i++ )); do
-				newname=`printf "%02d" ${i}`
-				mv ${WorkingDirectory}/Hero/unmerged/${Filename}_${newname}.fasta \
-${WorkingDirectory}/Merge/${Filename}_${newname}.fasta
-			done
-			numOfMergedSplits=`ls ${WorkingDirectory}/Split/merged | wc -l`
-			for(( i=0; i<${numOfMergedSplits}; i++ )); do
-				newname=`printf "%02d" ${i}`
-				newId=`expr ${numOfUnmergedSplits} + ${i}`
-				newId=`printf "%02d" ${newId}`
-				mv ${WorkingDirectory}/Hero/merged/${Filename}_${newname}.fasta \
-${WorkingDirectory}/Merge/${Filename}_${newId}.fasta
-			done
-			echo "Finish Moving Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
-			${PathPipeline}/0_master.sh "HeroDone"
-		fi
-	elif (( ${countMerged}>0 )); then
-		numOfMergedSplits=`ls ${WorkingDirectory}/Split/merged | wc -l`
-		for(( i=0; i<${numOfMergedSplits}; i++ )); do
-			newname=`printf "%02d" ${i}`
-			mv ${WorkingDirectory}/Hero/merged/${Filename}_${newname}.fasta \
-${WorkingDirectory}/Merge/${Filename}_${newname}.fasta
-		done
-		echo "Finish Moving Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
-		${PathPipeline}/0_master.sh "HeroDone"
-	elif (( ${countUnmerged}>0 )); then
-		numOfUnmergedSplits=`ls ${WorkingDirectory}/Split/unmerged | wc -l`
-		numOfUnmergedSplits=`expr ${numOfUnmergedSplits} - 1`
-		qsub \
--A ${Account} \
--e "${WorkingDirectory}/Merge/ErrMerge.log" \
--o "${WorkingDirectory}/Merge/OutMerge.log" \
-`if (( ${numOfUnmergedSplits} > 0 )); then echo "-J 0-${numOfUnmergedSplits}:1"; else echo "-v PBS_ARRAY_INDEX=0"; fi` \
--v SplitFolderMerged=${WorkingDirectory}/Hero/merged,\
-SplitFolderUnmerged=${WorkingDirectory}/Hero/unmerged,\
-Filename=${Filename},\
-Target=${WorkingDirectory}/Hero/unmerged,\
-PathPipeline=${PathPipeline},\
-WorkingDirectory=${WorkingDirectory}/Merge/,\
-PathStorm=${PathStorm},\
-NumThreads=${NumThreads} \
-${PathPipeline}/3_storm.sh \
->> ${WorkingDirectory}/Omega.log
+	if (( ${countMerged}>0 )); then
+		AllMerged=(${WorkingDirectory}/Hero/merged/*fasta)
+		cat ${AllMerged} > ${WorkingDirectory}/Merge/SingleEnd.fasta
 	fi
+	if (( ${countUnmerged}>0 )); then
+		AllUnmerged=(${WorkingDirectory}/Hero/unmerged/*fasta)
+		cat ${AllUnmerged} > ${WorkingDirectory}/Merge/PairEnd.fasta
+	fi
+	echo "Finish Concatenating Jobs at $(date)." >> ${WorkingDirectory}/Omega.log
+	echo Time is $(date) >> ${WorkingDirectory}/Omega.log
+	echo "Finish Storm-Aligning Jobs." >> ${WorkingDirectory}/Omega.log
+	echo "Submit Omega Jobs..." >> ${WorkingDirectory}/Omega.log
+	if [ -d "${WorkingDirectory}/Omega" ]; then
+		rm -r ${WorkingDirectory}/Omega
+		mkdir ${WorkingDirectory}/Omega
+	else
+		mkdir ${WorkingDirectory}/Omega
+	fi
+	qsub \
+-A ${Account} \
+-e "${WorkingDirectory}/Omega/ErrOmega.log" \
+-o "${WorkingDirectory}/Omega/OutOmega.log" \
+-v PathPipeline=${PathPipeline},\
+WorkingDirectory=${WorkingDirectory}/Omega,\
+InputReads=${WorkingDirectory}/Merge,\
+PathOmega=${PathOmega},\
+NumThreads=${NumThreads},\
+TargetName=${TargetName},\
+Filename=${Filename} \
+${PathPipeline}/3_omega.sh \
+>> ${WorkingDirectory}/Omega.log 
 	exit
 fi
 
