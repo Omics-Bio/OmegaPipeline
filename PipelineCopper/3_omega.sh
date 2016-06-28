@@ -4,7 +4,7 @@
 #PBS -l select=1:ncpus=32:mpiprocs=1
 #PBS -q standard
 
-module swap PrgEnv-pgi/5.2.82 PrgEnv-gnu/5.2.82
+module swap PrgEnv-pgi PrgEnv-gnu
 
 output=${WorkingDirectory}
 log=${WorkingDirectory}/assembly.log
@@ -14,12 +14,12 @@ if [ -f ${InputReads}/SingleEnd.fasta ]; then
 		${PathOmega}/runOmega3.sh -inS ${InputReads}/SingleEnd.fasta \
 -inP ${InputReads}/PairEnd.fasta \
 -n ${NumThreads} \
--d ${output} -o ${TargetName} -log DEBUG \
+-d ${output} -o ${TargetName} \
 &> ${log}
 	else
 		${PathOmega}/runOmega3.sh -inS ${InputReads}/SingleEnd.fasta \
 -n ${NumThreads} \
--d ${output} -o ${TargetName} -log DEBUG \
+-d ${output} -o ${TargetName} \
 &> ${log}
 	fi
 else 
@@ -27,7 +27,7 @@ else
 		${PathOmega}/runOmega3.sh \
 -inP ${InputReads}/PairEnd.fasta \
 -n ${NumThreads} \
--d ${output} -o ${TargetName} -log DEBUG \
+-d ${output} -o ${TargetName} \
 &> ${log}
 	fi
 fi
